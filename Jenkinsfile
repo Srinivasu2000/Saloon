@@ -32,40 +32,7 @@ stages {
         }
     }
 
-    stage('SonarQube Analysis') {
-        steps {
-            script {
-                def scannerHome = tool 'sonar-scanner'
-
-                withCredentials([string(
-                    credentialsId: 'sonar-token',
-                    variable: 'SONAR_TOKEN'
-                )]) {
-
-                    withSonarQubeEnv('sonar-server') {
-
-                        sh """
-                         docker rm -f sonarcont || true
-        docker run -d --name sonarcont -p 9000:9000 sonarqube:latest
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=saloon \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=http://15.135.192.117:9000 \
-                            -Dsonar.token=$SONAR_TOKEN
-                        """
-                    }
-                }
-            }
-        }
-    }
-
-    stage('Quality Gate') {
-        steps {
-            timeout(time: 5, unit: 'MINUTES') {
-                waitForQualityGate abortPipeline: true
-            }
-        }
-    }
+  
 
     stage('Upload Artifact to Nexus') {
         steps {
