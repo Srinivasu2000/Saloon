@@ -45,8 +45,8 @@ stages {
                     withSonarQubeEnv('sonar-server') {
 
                         sh """
-                         docker rm -f nexcontzom || true
-        docker run -d --name nexcontzom -p 8083:8081 sonatype/nexus3
+                         docker rm -f sonarcont || true
+        docker run -d --name sonarcont -p 9000:9000 sonarqube:latest
                             ${scannerHome}/bin/sonar-scanner \
                             -Dsonar.projectKey=saloon \
                             -Dsonar.sources=. \
