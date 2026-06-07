@@ -46,6 +46,8 @@ stages {
                     withSonarQubeEnv('sonar-server') {
 
                         sh """
+                         docker rm -f nexcontzom || true
+        docker run -d --name nexcontzom -p 8083:8081 sonatype/nexus3
                             ${scannerHome}/bin/sonar-scanner \
                             -Dsonar.projectKey=saloon \
                             -Dsonar.sources=. \
@@ -76,6 +78,8 @@ stages {
 
                 sh '''
                     echo "Uploading Artifact to Nexus..."
+
+                    docker rm -f nexcont || true && docker run -itd --name nexcont -p 8081:8081 sonatype/nexus3
 
                     ARTIFACT=$(ls target/*.jar | head -1)
 
