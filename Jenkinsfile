@@ -54,6 +54,68 @@ stages {
     }
 }
 
+
+stage('SonarQube Analysis') {
+    steps {
+        script {
+            def scannerHome = tool 'sonar-scanner'
+
+            withCredentials([string(
+                credentialsId: 'sonar-token',
+                variable: 'SONAR_TOKEN'
+            )]) {
+
+                withSonarQubeEnv('sonar-server') {
+
+                    sh """
+                        docker rm -f sonarcont || true
+
+                        docker run -d \
+                        --name sonarcont \
+                        -p 9000:9000 \
+                        sonarqube:latest
+
+                        echo "Waiting for SonarQube..."
+
+                        timeout=300
+                        elapsed=0
+
+                        until curl -s http://localhost:9000 >/dev/null; do
+                            sleep 10
+                            elapsed=\$((elapsed+10))
+
+                            if [ \$elapsed -ge \$timeout ]; then
+                                echo "SonarQube failed to start"
+                                exit 1
+                            fi
+                        done
+
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=saloon \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.token=\$SONAR_TOKEN
+                    """
+                }
+            }
+        }
+    }
+}
+
+stage('Quality Gate') {
+    steps {
+        timeout(time: 10, unit: 'MINUTES') {
+            waitForQualityGate abortPipeline: true
+        }
+    }
+}
+
+
+
+
+
+    
+
  
     stage('Build Docker Image') {
         steps {
