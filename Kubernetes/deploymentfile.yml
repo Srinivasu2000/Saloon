@@ -4,18 +4,23 @@ metadata:
   name: saloon
   labels:
     app: saloon
+
 spec:
   replicas: 2
+
   selector:
     matchLabels:
       app: saloon
+
   template:
     metadata:
       labels:
         app: saloon
+
     spec:
       containers:
         - name: saloon
-          image: saloon:latest
+          image: srinivasu56/saloon:latest
+          imagePullPolicy: Always
           ports:
-            - containerPort: 8082     
+            - containerPort: 8082
