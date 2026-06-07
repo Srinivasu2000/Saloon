@@ -119,22 +119,23 @@ stages {
         }
     }
 
-    stage('Deploy to Kubernetes') {
-        steps {
-            sh '''
-                echo "Deploying to EKS..."
+   stage('Deploy to Kubernetes') {
+    steps {
+        sh '''
+            echo "Deploying to EKS..."
 
-                aws eks --region ap-southeast-2 update-kubeconfig --name mycluster
+            if aws eks describe-cluster --region ap-southeast-2 --name salooncluster >/dev/null 2>&1; then
+                aws eks update-kubeconfig --region ap-southeast-2 --name salooncluster
 
                 kubectl get nodes
-
                 kubectl apply -f Kubernetes/deploymentfile.yml
                 kubectl apply -f Kubernetes/service.yml
-            '''
-        }
+            else
+                echo "Cluster salooncluster does not exist. Skipping deployment."
+            fi
+        '''
     }
 }
-
 post {
     success {
         echo 'Pipeline executed successfully!'
