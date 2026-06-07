@@ -60,41 +60,46 @@ stage('SonarQube Analysis') {
         script {
             def scannerHome = tool 'sonar-scanner'
 
-            withCredentials([string(
-                credentialsId: 'sonar-token',
-                variable: 'SONAR_TOKEN'
-            )]) {
+            withCredentials([
+                string(
+                    credentialsId: 'sonar-token',
+                    variable: 'SONAR_TOKEN'
+                )
+            ]) {
 
                 withSonarQubeEnv('sonar-server') {
 
                     sh """
-                        docker rm -f sonarcont || true
-
-                        docker run -d \
-                        --name sonarcont \
-                        -p 9000:9000 \
-                        sonarqube:latest
-
-                        echo "Waiting for SonarQube..."
+                        echo "Checking SonarQube status..."
 
                         timeout=300
-                        elapsed=0
 
-                        until curl -s http://localhost:9000 >/dev/null; do
+                        while true
+                        do
+                            STATUS=\$(curl -s http://localhost:9000/api/system/status | grep -o '"status":"[^"]*"' | cut -d':' -f2 | tr -d '"')
+
+                            echo "Current Status: \$STATUS"
+
+                            if [ "\$STATUS" = "UP" ]; then
+                                echo "SonarQube is ready"
+                                break
+                            fi
+
                             sleep 10
-                            elapsed=\$((elapsed+10))
 
-                            if [ \$elapsed -ge \$timeout ]; then
-                                echo "SonarQube failed to start"
+                            timeout=\$((timeout-5))
+
+                            if [ \$timeout -le 0 ]; then
+                                echo "SonarQube failed to become ready"
                                 exit 1
                             fi
                         done
 
                         ${scannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=saloon \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=http://localhost:9000 \
-                        -Dsonar.token=\$SONAR_TOKEN
+                          -Dsonar.projectKey=saloon \
+                          -Dsonar.sources=. \
+                          -Dsonar.host.url=http://localhost:9000 \
+                          -Dsonar.token=$SONAR_TOKEN
                     """
                 }
             }
