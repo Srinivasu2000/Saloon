@@ -47,10 +47,10 @@ stages {
 
                     ARTIFACT=$(ls target/*.jar | head -1)
 
-                    curl -v \
-                    -u $NEXUS_USER:$NEXUS_PASS \
-                    --upload-file $ARTIFACT \
-                    http://15.135.192.117:8081/repository/saloon/$(basename $ARTIFACT)
+curl -v \
+-u $NEXUS_USER:$NEXUS_PASS \
+--upload-file $ARTIFACT \
+http://localhost:8081/repository/saloon/$(basename $ARTIFACT)
                 '''
             }
         }
