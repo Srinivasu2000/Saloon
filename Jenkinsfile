@@ -33,28 +33,26 @@ stages {
     }
 
   stage('Upload Artifact to Nexus') {
-        steps {
-            withCredentials([usernamePassword(
-                credentialsId: 'nexus-cred',
-                usernameVariable: 'NEXUS_USER',
-                passwordVariable: 'NEXUS_PASS'
-            )]) {
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'nexus-cred',
+            usernameVariable: 'NEXUS_USER',
+            passwordVariable: 'NEXUS_PASS'
+        )]) {
 
-                sh '''
-                    echo "Uploading Artifact to Nexus..."
+            sh '''
+                echo "Uploading Artifact to Nexus..."
 
-                    docker rm -f nexcont || true && docker run -itd --name nexcont -p 8081:8081 sonatype/nexus3
+                ARTIFACT=$(ls target/*.jar | head -1)
 
-                    ARTIFACT=$(ls target/*.jar | head -1)
-
-curl -v \
--u $NEXUS_USER:$NEXUS_PASS \
---upload-file $ARTIFACT \
-http://localhost:8081/repository/saloon/$(basename $ARTIFACT)
-                '''
-            }
+                curl -v \
+                -u "$NEXUS_USER:$NEXUS_PASS" \
+                --upload-file "$ARTIFACT" \
+                http://localhost:8081/repository/saloon/$(basename "$ARTIFACT")
+            '''
         }
     }
+}
 
  
     stage('Build Docker Image') {
