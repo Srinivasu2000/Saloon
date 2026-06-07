@@ -1,7 +1,6 @@
 pipeline {
 agent any
 
-```
 environment {
     DOCKER_USER    = "srinivasu56"
     IMAGE_NAME     = "saloon"
