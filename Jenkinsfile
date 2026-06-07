@@ -135,6 +135,8 @@ stages {
         '''
     }
 }
+
+}
 post {
     success {
         echo 'Pipeline executed successfully!'
